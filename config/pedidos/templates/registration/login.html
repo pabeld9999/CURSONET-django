@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+
+    <!-- Enlace a tu CSS -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <h2>Cafeteria de Carlos</h2>
+    <h2>Iniciar sesión</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit">Ingresar</button>
+    </form>
+
+</div>
+
+</body>
+</html>
