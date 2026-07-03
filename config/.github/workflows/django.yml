@@ -1,0 +1,46 @@
+name: Revision Django
+
+# Ejecuta la revision cuando se sube codigo a main
+on:
+  push:
+    branches: [ "main" ]
+
+  # Tambien ejecuta la revision en pull requests hacia main
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  revisar-proyecto:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Descarga el codigo del repositorio
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      # Configura Python en el servidor de GitHub Actions
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Instala las dependencias desde requirements.txt
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Revisa errores de configuracion de Django
+      - name: Revisar configuracion Django
+        run: |
+          python manage.py check
+
+      # Ejecuta migraciones en una base de datos temporal
+      - name: Ejecutar migraciones
+        run: |
+          python manage.py migrate --noinput
+
+      # Ejecuta pruebas si existen en el proyecto
+      - name: Ejecutar pruebas Django
+        run: |
+          python manage.py test
