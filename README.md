@@ -3,7 +3,7 @@
 ## Integrantes
 - pabel dayner 1
 - jose antonio 2
-- emer choque  3
+- juan david  3
 
 ## Descripción
 Sistema web desarrollado en Django para gestionar procesos relacionados con el tema asignado.
