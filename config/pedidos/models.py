@@ -5,12 +5,14 @@ from django.contrib.auth.models import User
 
 
 class Categoria(models.Model):
-    # ... (deja tus campos actuales aquí, no los borres) ...
+    nombre = models.CharField(max_length=100)
 
     class Meta:
         verbose_name = "Categoría"
         verbose_name_plural = "Categorías"
 
+    def __str__(self):
+        return self.nombre
 
 # Create your models here.
 # Modelo que representa los productos de la cafetería
