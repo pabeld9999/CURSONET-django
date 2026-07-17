@@ -1,12 +1,90 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Mis pedidos</h2>
-<ul class="list-group">
-    {% for pedido in pedidos %}
-    <li class="list-group-item">
-        Pedido {{ pedido.id }} - {{ pedido.fecha }}
-    </li>
-    {% endfor %}
-</ul>
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2>Mis matrículas</h2>
+            <p class="text-muted">Historial de matrículas realizadas por ti.</p>
+        </div>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'lista_productos' %}">Explorar cursos</a>
+    </div>
+
+    {% if session_items %}
+    <h4>Selecciones pendientes</h4>
+    <table class="table mb-4">
+        <thead>
+            <tr>
+                <th>Curso</th>
+                <th>Cantidad</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in session_items %}
+            <tr>
+                <td>{{ item.producto.nombre }}</td>
+                <td>{{ item.cantidad }}</td>
+                <td>{{ item.subtotal }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="d-flex justify-content-end mb-4">
+        <div class="text-end">
+            <div>Total pendiente:</div>
+            <div class="h4">{{ session_total }}</div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if pedidos %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Método</th>
+                <th>Estado</th>
+                <th>Total</th>
+                <th class="text-end">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos %}
+            <tr>
+                <td>{{ pedido.id }}</td>
+                <td>{{ pedido.fecha }}</td>
+                <td>
+                    {% if pedido.metodo_pago == 'yape' %}
+                        <span class="badge" style="background-color: #9C27B0;">Yape</span>
+                    {% elif pedido.metodo_pago == 'plin' %}
+                        <span class="badge bg-info">Plin</span>
+                    {% elif pedido.metodo_pago == 'efectivo' %}
+                        <span class="badge bg-warning text-dark">Efectivo</span>
+                    {% elif pedido.metodo_pago == 'transferencia' %}
+                        <span class="badge bg-secondary">Transferencia</span>
+                    {% elif pedido.metodo_pago == 'tarjeta' %}
+                        <span class="badge" style="background-color: #87CEEB;">Tarjeta</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if pedido.estado_pago == 'pagado' %}
+                        <span class="badge bg-success">{{ pedido.get_estado_pago_display }}</span>
+                    {% else %}
+                        <span class="badge bg-danger">{{ pedido.get_estado_pago_display }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ pedido.total|default:'0.00' }}</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-primary" href="{% url 'detalle_pedido' pedido.id %}">Ver detalle</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info">No tienes matrículas aún. Visita <a href="{% url 'lista_productos' %}">Cursos</a> para inscribirte.</div>
+    {% endif %}
+</div>
 {% endblock %}

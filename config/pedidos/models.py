@@ -54,6 +54,12 @@ class Pedido(models.Model):  # O como se llame tu clase de pedidos
     # Muchos pedidos pueden pertenecer a un usuario
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    # Datos del estudiante
+    estudiante_nombre = models.CharField(max_length=150, blank=True, null=True)
+    documento = models.CharField(max_length=50, blank=True, null=True)
+    telefono = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+
     # Relación muchos a muchos:
     # Un pedido puede contener varios productos
     productos = models.ManyToManyField(Producto, through="DetallePedido")
@@ -64,17 +70,31 @@ class Pedido(models.Model):  # O como se llame tu clase de pedidos
     # Total del pedido
     total = models.DecimalField(max_digits=8, decimal_places=2)
 
-    # Representación en texto
+    # Métodos y estado de pago
+    METODO_CHOICES = [
+        ("efectivo", "Efectivo"),
+        ("yape", "Yape"),
+        ("plin", "Plin"),
+        ("transferencia", "Transferencia"),
+        ("tarjeta", "Tarjeta"),
+    ]
+    metodo_pago = models.CharField(max_length=20, choices=METODO_CHOICES, default="transferencia")
+    referencia_pago = models.CharField(max_length=120, blank=True, null=True)
+    ESTADO_PAGO_CHOICES = [
+        ("pagado", "Pagado"),
+        ("pendiente", "Pendiente"),
+    ]
+    estado_pago = models.CharField(max_length=20, choices=ESTADO_PAGO_CHOICES, default="pagado")
+
     def __str__(self):
         return f"Pedido {self.id} - {self.usuario.username}"
 
 
-class DetallePedido(models.Model):  # O como se llame tu clase de detalle
-    # ... (deja tus campos actuales aquí) ...
-
+class DetallePedido(models.Model):
     class Meta:
         verbose_name = "Detalle Matrícula"
         verbose_name_plural = "Detalle Matrículas"
+
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     cantidad = models.IntegerField()

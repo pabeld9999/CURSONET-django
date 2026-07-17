@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-card mx-auto" style="max-width:480px">
+    <h4>Pago - {{ producto.nombre }}</h4>
+    <p>Cantidad: {{ cantidad }} — Monto: {{ amount }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-2">
+            <label class="form-label">Método de pago</label>
+            <select name="method" class="form-select">
+                <option value="efectivo">Efectivo</option>
+                <option value="yape">Yape</option>
+                <option value="plin">Plin</option>
+                <option value="tarjeta">Tarjeta</option>
+                <option value="transferencia">Transferencia</option>
+            </select>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">Referencia / Nº transacción</label>
+            <input type="text" name="reference" class="form-control" placeholder="Dejar vacío si es efectivo">
+        </div>
+        <div class="mb-3 text-muted">
+            Selecciona el método de pago y coloca el número de operación si corresponde.
+        </div>
+        <div class="d-flex justify-content-between">
+            <a class="btn btn-outline-secondary" href="{% url 'select_course' producto.id %}">Atrás</a>
+            <button class="btn btn-success" type="submit">Confirmar y pagar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

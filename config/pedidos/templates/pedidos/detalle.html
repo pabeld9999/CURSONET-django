@@ -1,12 +1,67 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Detalle del pedido</h2>
-<ul class="list-group">
-    {% for d in detalles %}
-    <li class="list-group-item">
-        {{ d.producto.nombre }} x{{ d.cantidad }}
-    </li>
-    {% endfor %}
-</ul>
+<div class="mb-3">
+    <a class="btn btn-secondary btn-sm me-2" href="{% url 'mis_pedidos' %}">Volver a mis matriculas</a>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'lista_productos' %}">Ver cursos</a>
+</div>
+
+<div class="modal fade show" id="detalleModal" tabindex="-1" aria-labelledby="detalleModalLabel" aria-modal="true" style="display: block; background: rgba(0, 0, 0, 0.4);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detalleModalLabel">Detalle de la matrícula</h5>
+                <a href="{% url 'mis_pedidos' %}" class="btn-close"></a>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <strong>Estudiante:</strong> {{ pedido.estudiante_nombre|default:'No informado' }}
+                </div>
+                <div class="mb-3">
+                    <strong>DNI:</strong> {{ pedido.documento|default:'No informado' }}
+                </div>
+                <div class="mb-3">
+                    <strong>Curso matriculado:</strong>
+                    <ul class="mb-0">
+                        {% for detalle in detalles %}
+                        <li>{{ detalle.producto.nombre }} x{{ detalle.cantidad }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="mb-3">
+                    <strong>Fecha y hora:</strong> {{ pedido.fecha|date:'Y-m-d H:i' }}
+                </div>
+                <div class="mb-3">
+                    <strong>Monto pagado:</strong> S/ {{ pedido.total }}
+                </div>
+                <div class="mb-3">
+                    <strong>Método de pago:</strong> 
+                    {% if pedido.metodo_pago == 'yape' %}
+                        <span class="badge" style="background-color: #9C27B0;">Yape</span>
+                    {% elif pedido.metodo_pago == 'plin' %}
+                        <span class="badge bg-info">Plin</span>
+                    {% elif pedido.metodo_pago == 'efectivo' %}
+                        <span class="badge bg-warning text-dark">Efectivo</span>
+                    {% elif pedido.metodo_pago == 'transferencia' %}
+                        <span class="badge bg-secondary">Transferencia</span>
+                    {% elif pedido.metodo_pago == 'tarjeta' %}
+                        <span class="badge" style="background-color: #87CEEB;">Tarjeta</span>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <strong>Estado de pago:</strong> 
+                    {% if pedido.estado_pago == 'pagado' %}
+                        <span class="badge bg-success">Pagado</span>
+                    {% else %}
+                        <span class="badge bg-danger">Pendiente</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-secondary" href="{% url 'mis_pedidos' %}">Cerrar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

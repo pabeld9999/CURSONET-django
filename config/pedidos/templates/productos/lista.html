@@ -1,12 +1,62 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Productos</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Cursos</h2>
+    <div>
+        <a class="btn btn-outline-secondary btn-sm me-2" href="{% url 'inicio' %}">Inicio</a>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'mis_pedidos' %}">Mis matriculas</a>
+    </div>
+</div>
+
+{% if categoria %}
+<div class="mb-3">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'lista_productos' %}">Volver a categorías</a>
+</div>
+<h4 class="mb-3">{{ categoria.nombre }}</h4>
+<p class="text-muted">Elige un curso para continuar con la matrícula.</p>
 <ul class="list-group">
     {% for p in productos %}
-    <li class="list-group-item">
-        {{ p.nombre }} - S/ {{ p.precio }}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <span><strong>{{ p.nombre }}</strong> - S/ {{ p.precio }}</span>
+            <br>
+            <small class="text-muted">
+                {% if p.stock > 0 %}
+                    <span class="badge bg-success">{{ p.stock }} vacante{{ p.stock|pluralize }}</span>
+                {% else %}
+                    <span class="badge bg-danger">Agotado</span>
+                {% endif %}
+            </small>
+        </div>
+        {% if p.stock > 0 %}
+            <a class="btn btn-sm btn-primary" href="{% url 'select_course' p.id %}">Seleccionar</a>
+        {% else %}
+            <button class="btn btn-sm btn-secondary" disabled>Agotado</button>
+        {% endif %}
     </li>
+    {% empty %}
+    <li class="list-group-item">No hay cursos disponibles en esta categoría.</li>
     {% endfor %}
 </ul>
+{% else %}
+<p class="text-muted">Selecciona una categoría para ver los cursos disponibles.</p>
+<div class="row g-3">
+    {% for categoria_item in categorias %}
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ categoria_item.nombre }}</h5>
+                <p class="card-text text-muted">Explora los cursos disponibles en esta categoría.</p>
+                <a class="btn btn-primary" href="{% url 'lista_productos_categoria' categoria_item.id %}">Ver cursos</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">No hay categorías disponibles.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 {% endblock %}

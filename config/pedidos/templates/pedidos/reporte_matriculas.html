@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="report-page position-relative">
+    <div class="report-decorations" aria-hidden="true">
+        <div class="decor-item decor-books"></div>
+        <div class="decor-item decor-graduation"></div>
+        <div class="decor-item decor-laptop"></div>
+        <div class="decor-item decor-code"></div>
+        <div class="decor-item decor-certificate"></div>
+        <div class="decor-gif decor-student"></div>
+        <div class="decor-gif decor-book"></div>
+        <div class="decor-gif decor-mortarboard"></div>
+    </div>
+    <div class="content-card report-content">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h2>Reporte de Matrículas</h2>
+            <p class="text-muted">Resumen de matrículas y estado por usuario.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-secondary" onclick="window.print()">Imprimir</button>
+            <a class="btn btn-outline-success" href="?export=excel">Exportar a Excel</a>
+            <a class="btn btn-outline-primary" href="?export=csv">Exportar a CSV</a>
+            <button class="btn btn-outline-info" onclick="location.reload()">Actualizar</button>
+        </div>
+    </div>
+
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <label class="form-label">Nombre del estudiante</label>
+            <input type="text" name="nombre" value="{{ nombre }}" class="form-control" placeholder="Buscar nombre">
+        </div>
+        <div class="col-12 col-md-3">
+            <label class="form-label">Curso</label>
+            <input type="text" name="curso" value="{{ curso }}" class="form-control" placeholder="Buscar curso">
+        </div>
+        <div class="col-12 col-md-2">
+            <label class="form-label">Fecha</label>
+            <input type="date" name="fecha" value="{{ fecha }}" class="form-control">
+        </div>
+        <div class="col-12 col-md-2">
+            <label class="form-label">Estado de pago</label>
+            <select name="estado" class="form-select">
+                <option value="">Todos</option>
+                <option value="pagado" {% if estado == 'pagado' %}selected{% endif %}>Pagado</option>
+                <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-2">
+            <label class="form-label">Método</label>
+            <select name="metodo" class="form-select">
+                <option value="">Todos</option>
+                <option value="efectivo" {% if metodo == 'efectivo' %}selected{% endif %}>Efectivo</option>
+                <option value="yape" {% if metodo == 'yape' %}selected{% endif %}>Yape</option>
+                <option value="plin" {% if metodo == 'plin' %}selected{% endif %}>Plin</option>
+                <option value="transferencia" {% if metodo == 'transferencia' %}selected{% endif %}>Transferencia</option>
+                <option value="tarjeta" {% if metodo == 'tarjeta' %}selected{% endif %}>Tarjeta</option>
+            </select>
+        </div>
+        <div class="col-12 text-end">
+            <button class="btn btn-primary" type="submit">Filtrar</button>
+        </div>
+    </form>
+
+    <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted">Estudiantes matriculados</h6>
+                    <h3>{{ total_estudiantes }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted">Matrículas hoy</h6>
+                    <h3>{{ total_dia }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted">Matrículas este mes</h6>
+                    <h3>{{ total_mes }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted">Ingresos</h6>
+                    <h3>S/ {{ total_ingresos }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted">Cursos activos</h6>
+                    <h3>{{ cursos_activos }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted">Vacantes disponibles</h6>
+                    <h3>{{ vacantes }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm p-3">
+                <h6 class="text-muted">Matrículas por día</h6>
+                <canvas id="chartDia"></canvas>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm p-3">
+                <h6 class="text-muted">Matrículas por semana</h6>
+                <canvas id="chartSemana"></canvas>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm p-3">
+                <h6 class="text-muted">Matrículas por mes</h6>
+                <canvas id="chartMes"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Detalle de matrículas</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Estudiante</th>
+                            <th>DNI</th>
+                            <th>Curso</th>
+                            <th>Fecha</th>
+                            <th>Monto</th>
+                            <th>Método</th>
+                            <th>Estado</th>
+                            <th>Usuario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                        <tr>
+                            <td>{{ pedido.estudiante_nombre }}</td>
+                            <td>{{ pedido.documento }}</td>
+                            <td>{% for curso in pedido.productos.all %}{{ curso.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                            <td>{{ pedido.fecha|date:"Y-m-d H:i" }}</td>
+                            <td>S/ {{ pedido.total }}</td>
+                            <td>
+                                {% if pedido.metodo_pago == 'yape' %}
+                                    <span class="badge" style="background-color: #9C27B0;">Yape</span>
+                                {% elif pedido.metodo_pago == 'plin' %}
+                                    <span class="badge bg-info">Plin</span>
+                                {% elif pedido.metodo_pago == 'efectivo' %}
+                                    <span class="badge bg-warning text-dark">Efectivo</span>
+                                {% elif pedido.metodo_pago == 'transferencia' %}
+                                    <span class="badge bg-secondary">Transferencia</span>
+                                {% elif pedido.metodo_pago == 'tarjeta' %}
+                                    <span class="badge" style="background-color: #87CEEB;">Tarjeta</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if pedido.estado_pago == 'pagado' %}
+                                    <span class="badge bg-success">Pagado</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ pedido.usuario.username }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">No se encontraron matrículas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const matriculasPorDia = {{ matriculas_por_dia|safe }};
+const matriculasPorSemana = {{ matriculas_por_semana|safe }};
+const matriculasPorMes = {{ matriculas_por_mes|safe }};
+
+function buildChart(elementId, labels, data, label, color) {
+    const ctx = document.getElementById(elementId).getContext('2d');
+    return new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                backgroundColor: color,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+            },
+            scales: {
+                x: { ticks: { color: '#333' } },
+                y: { ticks: { color: '#333' } },
+            },
+        },
+    });
+}
+
+buildChart(
+    'chartDia',
+    matriculasPorDia.map(item => item.periodo),
+    matriculasPorDia.map(item => item.count),
+    'Por día',
+    'rgba(255, 159, 64, 0.7)'
+);
+
+buildChart(
+    'chartSemana',
+    matriculasPorSemana.map(item => item.periodo),
+    matriculasPorSemana.map(item => item.count),
+    'Por semana',
+    'rgba(153, 102, 255, 0.7)'
+);
+
+buildChart(
+    'chartMes',
+    matriculasPorMes.map(item => item.periodo),
+    matriculasPorMes.map(item => item.count),
+    'Por mes',
+    'rgba(255, 99, 132, 0.7)'
+);
+</script>
+{% endblock %}
