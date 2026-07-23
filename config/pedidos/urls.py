@@ -13,4 +13,5 @@ urlpatterns = [
     path("confirmar/", views.confirm_enrollment, name="confirm_enrollment"),
     path("mis-pedidos/", views.mis_pedidos, name="mis_pedidos"),
     path("pedido/<int:pedido_id>/", views.detalle_pedido, name="detalle_pedido"),
+    path("pedido/<int:pedido_id>/eliminar/", views.delete_pedido, name="delete_pedido"),
 ]

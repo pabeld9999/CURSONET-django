@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 # Importamos el modelo de usuario de Django
 from django.contrib.auth.models import User
@@ -24,18 +26,18 @@ class Producto(models.Model):
         verbose_name_plural = "Cursos"
 
     # Nombre del producto (texto corto)
-    nombre = models.CharField(max_length=100)
+    nombre = models.CharField(max_length=100, verbose_name="Nombre")
 
     # Precio con 2 decimales (ej: 5.50)
-    precio = models.DecimalField(max_digits=6, decimal_places=2)
+    precio = models.DecimalField(max_digits=6, decimal_places=2, verbose_name="Precio")
 
     # Cantidad disponible en inventario
-    stock = models.IntegerField()
+    stock = models.IntegerField(verbose_name="Vacantes")
 
     # Indica si el producto está disponible para venta
-    activo = models.BooleanField(default=True)
+    activo = models.BooleanField(default=True, verbose_name="Activo")
 
-    categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True)
+    categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, verbose_name="Categoría")
 
     # Representación en texto del objeto (usado en admin)
     def __str__(self):
@@ -101,3 +103,10 @@ class DetallePedido(models.Model):
 
     def __str__(self):
         return f"{self.producto.nombre} x{self.cantidad}"
+
+
+@receiver(pre_delete, sender=DetallePedido)
+def restore_stock_on_detalle_delete(sender, instance, **kwargs):
+    producto = instance.producto
+    producto.stock += instance.cantidad
+    producto.save()

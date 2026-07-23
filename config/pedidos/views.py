@@ -71,6 +71,20 @@ def detalle_pedido(request, pedido_id):
 
 
 @login_required
+def delete_pedido(request, pedido_id):
+    pedido = get_object_or_404(Pedido, pk=pedido_id, usuario=request.user)
+    if request.method == 'POST':
+        detalles = DetallePedido.objects.filter(pedido=pedido)
+        for detalle in detalles:
+            producto = detalle.producto
+            producto.stock += detalle.cantidad
+            producto.save()
+        pedido.delete()
+        return redirect('mis_pedidos')
+    return redirect('detalle_pedido', pedido_id=pedido_id)
+
+
+@login_required
 def carrito(request):
     # Usar carrito en sesión: {'product_id': cantidad}
     cart = request.session.get('cart', {})
@@ -214,20 +228,47 @@ def user_logout(request):
 @login_required
 def select_course(request, product_id):
     producto = get_object_or_404(Producto, pk=product_id, activo=True)
+    errors = []
+    form_data = {
+        'nombre': '',
+        'documento': '',
+        'telefono': '',
+        'email': '',
+        'cantidad': 1,
+    }
     if request.method == 'POST':
-        # Guardar datos de la matrícula en sesión
-        data = {
-            'product_id': product_id,
-            'nombre': request.POST.get('nombre', ''),
-            'documento': request.POST.get('documento', ''),
-            'telefono': request.POST.get('telefono', ''),
-            'email': request.POST.get('email', ''),
-            'cantidad': int(request.POST.get('cantidad', 1)),
-        }
-        request.session['pending_enrollment'] = data
-        request.session.modified = True
-        return redirect('payment')
-    return render(request, 'pedidos/select_course.html', {'producto': producto})
+        form_data['nombre'] = request.POST.get('nombre', '').strip()
+        form_data['documento'] = request.POST.get('documento', '').strip()
+        form_data['telefono'] = request.POST.get('telefono', '').strip()
+        form_data['email'] = request.POST.get('email', '').strip()
+        form_data['cantidad'] = int(request.POST.get('cantidad', 1))
+
+        if not form_data['nombre']:
+            errors.append('Nombre completo es obligatorio.')
+        if not form_data['documento']:
+            errors.append('Documento es obligatorio.')
+        if not form_data['telefono']:
+            errors.append('Teléfono es obligatorio.')
+        if not form_data['email']:
+            errors.append('Email es obligatorio.')
+        if form_data['cantidad'] < 1:
+            errors.append('La cantidad debe ser al menos 1.')
+        if form_data['cantidad'] > producto.stock:
+            errors.append('No hay suficientes vacantes disponibles para este curso.')
+
+        if not errors:
+            request.session['pending_enrollment'] = {
+                'product_id': product_id,
+                'nombre': form_data['nombre'],
+                'documento': form_data['documento'],
+                'telefono': form_data['telefono'],
+                'email': form_data['email'],
+                'cantidad': form_data['cantidad'],
+            }
+            request.session.modified = True
+            return redirect('payment')
+
+    return render(request, 'pedidos/select_course.html', {'producto': producto, 'errors': errors, 'form_data': form_data})
 
 
 @login_required
@@ -239,16 +280,28 @@ def payment(request):
     producto = get_object_or_404(Producto, pk=pending['product_id'])
     cantidad = int(pending.get('cantidad', 1))
     amount = producto.precio * cantidad
+    errors = []
+    form_data = {
+        'method': 'efectivo',
+        'reference': '',
+    }
     if request.method == 'POST':
-        # Simular pago: guardar los datos de pago en sesión y confirmar
-        payment_info = {
-            'method': request.POST.get('method', 'transferencia'),
-            'reference': request.POST.get('reference', ''),
-        }
-        request.session['pending_payment'] = payment_info
-        request.session.modified = True
-        return redirect('confirm_enrollment')
-    return render(request, 'pedidos/payment.html', {'producto': producto, 'cantidad': cantidad, 'amount': amount})
+        form_data['method'] = request.POST.get('method', 'transferencia')
+        form_data['reference'] = request.POST.get('reference', '').strip()
+
+        if form_data['method'] != 'efectivo' and not form_data['reference']:
+            errors.append('Por favor ingrese la referencia de la transacción para el método de pago seleccionado.')
+
+        if not errors:
+            payment_info = {
+                'method': form_data['method'],
+                'reference': form_data['reference'],
+            }
+            request.session['pending_payment'] = payment_info
+            request.session.modified = True
+            return redirect('confirm_enrollment')
+
+    return render(request, 'pedidos/payment.html', {'producto': producto, 'cantidad': cantidad, 'amount': amount, 'errors': errors, 'form_data': form_data})
 
 
 @login_required

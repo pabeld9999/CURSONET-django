@@ -4,21 +4,31 @@
 <div class="content-card mx-auto" style="max-width:480px">
     <h4>Pago - {{ producto.nombre }}</h4>
     <p>Cantidad: {{ cantidad }} — Monto: {{ amount }}</p>
-    <form method="post">
+    <form method="post" id="payment-form">
         {% csrf_token %}
+        {% if errors %}
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                {% for error in errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
         <div class="mb-2">
             <label class="form-label">Método de pago</label>
-            <select name="method" class="form-select">
-                <option value="efectivo">Efectivo</option>
-                <option value="yape">Yape</option>
-                <option value="plin">Plin</option>
-                <option value="tarjeta">Tarjeta</option>
-                <option value="transferencia">Transferencia</option>
+            <select name="method" id="method-select" class="form-select">
+                <option value="efectivo" {% if form_data.method == 'efectivo' %}selected{% endif %}>Efectivo</option>
+                <option value="yape" {% if form_data.method == 'yape' %}selected{% endif %}>Yape</option>
+                <option value="plin" {% if form_data.method == 'plin' %}selected{% endif %}>Plin</option>
+                <option value="tarjeta" {% if form_data.method == 'tarjeta' %}selected{% endif %}>Tarjeta</option>
+                <option value="transferencia" {% if form_data.method == 'transferencia' %}selected{% endif %}>Transferencia</option>
             </select>
         </div>
         <div class="mb-2">
             <label class="form-label">Referencia / Nº transacción</label>
-            <input type="text" name="reference" class="form-control" placeholder="Dejar vacío si es efectivo">
+            <input type="text" name="reference" id="reference-input" class="form-control" placeholder="Dejar vacío si es efectivo" value="{{ form_data.reference }}">
+            <div id="reference-feedback" class="invalid-feedback">Por favor escriba la referencia de la transacción.</div>
         </div>
         <div class="mb-3 text-muted">
             Selecciona el método de pago y coloca el número de operación si corresponde.
@@ -28,5 +38,38 @@
             <button class="btn btn-success" type="submit">Confirmar y pagar</button>
         </div>
     </form>
+
+    <script>
+        const methodSelect = document.getElementById('method-select');
+        const referenceInput = document.getElementById('reference-input');
+        const paymentForm = document.getElementById('payment-form');
+
+        function updateReferenceRequirement() {
+            const method = methodSelect.value;
+            if (method === 'efectivo') {
+                referenceInput.required = false;
+                referenceInput.placeholder = 'Dejar vacío si es efectivo';
+            } else {
+                referenceInput.required = true;
+                referenceInput.placeholder = 'Ingrese la referencia de la transacción';
+            }
+            referenceInput.setCustomValidity('');
+        }
+
+        methodSelect.addEventListener('change', updateReferenceRequirement);
+        referenceInput.addEventListener('input', function() {
+            referenceInput.setCustomValidity('');
+        });
+
+        paymentForm.addEventListener('submit', function(event) {
+            if (methodSelect.value !== 'efectivo' && !referenceInput.value.trim()) {
+                referenceInput.setCustomValidity('Por favor complete este campo');
+                referenceInput.reportValidity();
+                event.preventDefault();
+            }
+        });
+
+        updateReferenceRequirement();
+    </script>
 </div>
 {% endblock %}
